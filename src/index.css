@@ -4,59 +4,59 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 25% 10%;
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card: 214 60% 99%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover: 214 60% 99%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 160 84% 29%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 20% 94%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 215 20% 94%;
-    --muted-foreground: 215 14% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 160 60% 94%;
-    --accent-foreground: 160 84% 20%;
+    --accent: 220 30% 94%;
+    --accent-foreground: 221 83% 40%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 88%;
-    --input: 215 20% 88%;
-    --ring: 160 84% 29%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --trust: 160 84% 29%;
+    --trust: 142 71% 45%;
     --trust-foreground: 0 0% 100%;
-    --trust-muted: 160 40% 94%;
+    --trust-muted: 142 40% 94%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 38 92% 15%;
 
-    --info: 210 100% 52%;
+    --info: 221 83% 53%;
     --info-foreground: 0 0% 100%;
 
     --surface-auth: 222 47% 8%;
     --surface-auth-foreground: 210 20% 92%;
     --surface-auth-muted: 222 20% 22%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 160 84% 29%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 40% 94%;
-    --sidebar-accent-foreground: 160 84% 20%;
-    --sidebar-border: 215 20% 88%;
-    --sidebar-ring: 160 84% 29%;
+    --sidebar-accent: 220 30% 94%;
+    --sidebar-accent-foreground: 221 83% 40%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 221 83% 53%;
   }
 
   .dark {
@@ -69,7 +69,7 @@
     --popover: 222 30% 10%;
     --popover-foreground: 210 20% 92%;
 
-    --primary: 160 72% 42%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 222 20% 16%;
@@ -78,19 +78,19 @@
     --muted: 222 20% 16%;
     --muted-foreground: 215 14% 58%;
 
-    --accent: 160 40% 14%;
-    --accent-foreground: 160 72% 60%;
+    --accent: 217 50% 18%;
+    --accent-foreground: 217 91% 70%;
 
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 222 20% 18%;
     --input: 222 20% 18%;
-    --ring: 160 72% 42%;
+    --ring: 217 91% 60%;
 
-    --trust: 160 72% 42%;
+    --trust: 142 60% 40%;
     --trust-foreground: 0 0% 100%;
-    --trust-muted: 160 30% 14%;
+    --trust-muted: 142 30% 14%;
 
     --surface-auth: 222 47% 4%;
     --surface-auth-foreground: 210 20% 92%;
@@ -98,12 +98,12 @@
 
     --sidebar-background: 222 30% 8%;
     --sidebar-foreground: 210 20% 80%;
-    --sidebar-primary: 160 72% 42%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 30% 14%;
-    --sidebar-accent-foreground: 160 72% 60%;
+    --sidebar-accent: 217 50% 18%;
+    --sidebar-accent-foreground: 217 91% 70%;
     --sidebar-border: 222 20% 18%;
-    --sidebar-ring: 160 72% 42%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -111,6 +111,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
   }

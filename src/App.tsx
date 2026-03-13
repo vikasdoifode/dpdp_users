@@ -13,6 +13,9 @@ import DashboardPage from "./pages/DashboardPage";
 import AITransparencyPage from "./pages/AITransparencyPage";
 import ActivityLogPage from "./pages/ActivityLogPage";
 import SharedResourcesPage from "./pages/SharedResourcesPage";
+import RiskScorePage from "./pages/RiskScorePage";
+import ConsentSetupPage from "./pages/ConsentSetupPage";
+import UserConsentsPage from "./pages/UserConsentsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,9 @@ const App = () => (
             <Route path="/shared-resources" element={<ProtectedRoute><SharedResourcesPage /></ProtectedRoute>} />
             <Route path="/ai-transparency" element={<ProtectedRoute><AITransparencyPage /></ProtectedRoute>} />
             <Route path="/activity-log" element={<ProtectedRoute><ActivityLogPage /></ProtectedRoute>} />
+            <Route path="/risk-score" element={<ProtectedRoute><RiskScorePage /></ProtectedRoute>} />
+            <Route path="/user-consents" element={<ProtectedRoute><UserConsentsPage /></ProtectedRoute>} />
+            <Route path="/consent-setup" element={<ProtectedRoute><ConsentSetupPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
