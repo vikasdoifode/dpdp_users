@@ -45,13 +45,7 @@ interface AuthState {
   loading: boolean;
 }
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  user: UserProfile | null;
-  consents: ConsentRecord[];
-  activities: ActivityEntry[];
-  aiEnabled: boolean;
-  loading: boolean;
+interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     name: string;
@@ -61,19 +55,12 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
-  activityRefresh: {
-    loading: boolean;
-    error: string | null;
-    fetch: () => Promise<void>;
-  };
-  consentRefresh: {
-    loading: boolean;
-    error: string | null;
-    fetch: () => Promise<void>;
-  };
+  updateConsent: (consentId: string, granted: boolean) => Promise<void>;
+  toggleAI: (enabled: boolean) => Promise<void>;
+  refreshActivities: () => Promise<void>;
+  refreshConsents: () => Promise<void>;
   requestDataExport: () => void;
   requestAccountDeletion: () => Promise<void>;
-  toggleAI: (enabled: boolean) => Promise<void>; // Added to interface
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -279,27 +266,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshActivities = useCallback(async () => {
     try {
-      const res = await api.getActivities();
-      setState((prev) => ({
-        ...prev,
+      const res = await api.getActivities(50);
+      setState((s) => ({
+        ...s,
         activities: (res.activities || []).map(normalizeActivity),
       }));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // silently fail
     }
   }, []);
 
   const refreshConsents = useCallback(async () => {
     try {
-      const res = await api.getConsentHistory(); // Ensure this endpoint returns current status
-      // You may need a dedicated endpoint for current consents status if history returns logs
-      // Assuming getConsentHistory returns { consents: [] }
-      setState((prev) => ({
-        ...prev,
-        consents: (res.consents || []).map(normalizeConsent),
+      const res = await api.getConsentHistory();
+      const consents = (res.consents || []).map(normalizeConsent);
+      setState((s) => ({
+        ...s,
+        consents,
+        aiEnabled:
+          consents.find((c) => c.type === "ai_processing")?.granted ??
+          s.aiEnabled,
       }));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // silently fail
     }
   }, []);
 
@@ -333,36 +322,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const value: AuthContextType = {
-    ...state,
-    login,
-    register,
-    logout,
-    updateProfile,
-    activityRefresh: {
-       loading: false, // Placeholder, can implement detailed loading state
-       error: null,
-       fetch: refreshActivities,
-    },
-    consentRefresh: {
-       loading: false,
-       error: null,
-       fetch: refreshConsents,
-    },
-    requestDataExport,
-    requestAccountDeletion,
-    toggleAI,
-  };
-
   return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        logout,
+        updateProfile,
+        updateConsent,
+        toggleAI,
+        refreshActivities,
+        refreshConsents,
+        requestDataExport,
+        requestAccountDeletion,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 };

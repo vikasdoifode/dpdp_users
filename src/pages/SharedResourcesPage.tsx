@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,6 @@ import {
   AlertTriangle,
   Calendar,
 } from "lucide-react";
-import { api } from "@/lib/api";
 
 type DataType = "email" | "name" | "phone" | "location" | "browsing_history" | "preferences";
 type ResourceStatus = "active" | "revoked" | "deleted";
@@ -75,139 +74,123 @@ const STATUS_CONFIG: Record<ResourceStatus, { label: string; variant: "default" 
   deleted: { label: "Deleted", variant: "destructive", icon: AlertTriangle },
 };
 
+// Mock data
+const INITIAL_RESOURCES: SharedResource[] = [
+  {
+    id: "sr1",
+    websiteName: "ShopEasy India",
+    websiteUrl: "shopeasy.in",
+    dataType: "email",
+    dataLabel: "Email Address",
+    sharedAt: "2025-02-28T14:30:00Z",
+    status: "active",
+    expiryDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "sr2",
+    websiteName: "ShopEasy India",
+    websiteUrl: "shopeasy.in",
+    dataType: "name",
+    dataLabel: "Full Name",
+    sharedAt: "2025-02-28T14:30:00Z",
+    status: "active",
+    expiryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "sr3",
+    websiteName: "HealthTrack Pro",
+    websiteUrl: "healthtrackpro.com",
+    dataType: "location",
+    dataLabel: "Location Data",
+    sharedAt: "2025-02-20T09:15:00Z",
+    status: "active",
+    expiryDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "sr4",
+    websiteName: "HealthTrack Pro",
+    websiteUrl: "healthtrackpro.com",
+    dataType: "phone",
+    dataLabel: "Phone Number",
+    sharedAt: "2025-02-20T09:15:00Z",
+    status: "active",
+    expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "sr5",
+    websiteName: "NewsDaily",
+    websiteUrl: "newsdaily.in",
+    dataType: "browsing_history",
+    dataLabel: "Browsing History",
+    sharedAt: "2025-01-15T18:00:00Z",
+    status: "revoked",
+    revokedAt: "2025-02-10T12:00:00Z",
+    expiryDate: "2025-04-15T18:00:00Z"
+  },
+  {
+    id: "sr7",
+    websiteName: "FinanceHub",
+    websiteUrl: "financehub.in",
+    dataType: "email",
+    dataLabel: "Email Address",
+    sharedAt: "2024-12-10T11:45:00Z",
+    status: "active",
+    expiryDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+const formatTimestamp = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+};
+
 const SharedResourcesPage = () => {
-  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("all");
-  const [resources, setResources] = useState<SharedResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [resources, setResources] = useState<SharedResource[]>(INITIAL_RESOURCES);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-
-  const formatTimestamp = (isoDate: string) => {
-    return new Date(isoDate).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Fetch resources
-  useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const res = await api.getResources();
-        // Map backend response to frontend Resource interface
-        const mapped = res.resources.map((r: any) => ({
-          id: r._id,
-          websiteName: r.websiteName,
-          websiteUrl: r.websiteUrl,
-          dataType: r.dataType,
-          dataLabel: r.dataLabel,
-          sharedAt: r.sharedAt,
-          status: r.status,
-          expiryDate: r.expiryDate,
-          revokedAt: r.revokedAt,
-          deletedAt: r.deletedAt,
-        }));
-        setResources(mapped);
-      } catch (err) {
-        console.error("Failed to fetch resources", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchResources();
-  }, []);
-
-  // Handlers for revoke/delete
-  const handleRevoke = async (id: string) => {
-    try {
-      await api.revokeResource(id);
-      setResources((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, status: "revoked", revokedAt: new Date().toISOString() } : r
-        )
-      );
-    } catch (err) {
-      console.error("Failed to revoke resource", err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await api.deleteResource(id);
-      setResources((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, status: "deleted", deletedAt: new Date().toISOString() } : r
-        )
-      );
-    } catch (err) {
-      console.error("Failed to delete resource", err);
-    }
-  };
-
-  const filteredResources = useMemo(() => {
-    return resources.filter((resource) => {
-      const matchesSearch =
-        resource.websiteName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resource.dataLabel.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === "all" || resource.dataType === selectedType;
-      const matchesTab =
-        activeTab === "active"
-          ? resource.status === "active"
-          : resource.status === "revoked" || resource.status === "deleted";
-
-      return matchesSearch && matchesType && matchesTab;
-    });
-  }, [resources, searchTerm, selectedType, activeTab]);
-
-  // Derived timeline from resources
-  const historyTimeline: TimelineEntry[] = useMemo(() => {
-    const entries: TimelineEntry[] = [];
-    resources.forEach((r) => {
-      // Shared event
-      entries.push({
-        id: r.id + "_shared",
-        action: "shared",
-        resourceLabel: r.dataLabel,
-        websiteName: r.websiteName,
-        timestamp: r.sharedAt,
-      });
-      // Revoked event
-      if (r.revokedAt) {
-        entries.push({
-          id: r.id + "_revoked",
-          action: "revoked",
-          resourceLabel: r.dataLabel,
-          websiteName: r.websiteName,
-          timestamp: r.revokedAt,
-        });
-      }
-      // Deleted event
-      if (r.deletedAt) {
-        entries.push({
-          id: r.id + "_deleted",
-          action: "deleted",
-          resourceLabel: r.dataLabel,
-          websiteName: r.websiteName,
-          timestamp: r.deletedAt,
-        });
-      }
-    });
-    return entries.sort((a, b) => {
-       const timeA = new Date(a.timestamp).getTime();
-       const timeB = new Date(b.timestamp).getTime();
-       return sortOrder === "newest" ? timeB - timeA : timeA - timeB;
-    });
-  }, [resources, sortOrder]);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const lastUpdated = useMemo(() => formatTimestamp(new Date().toISOString()), []);
 
-  if (isLoading) {
-      return <div className="p-8">Loading shared resources...</div>;
-  }
+  const timeline: TimelineEntry[] = useMemo(() => {
+    const entries: TimelineEntry[] = [];
+    resources.forEach((r) => {
+      entries.push({ id: `${r.id}-shared`, action: "shared", resourceLabel: r.dataLabel, websiteName: r.websiteName, timestamp: r.sharedAt });
+      if (r.revokedAt) entries.push({ id: `${r.id}-revoked`, action: "revoked", resourceLabel: r.dataLabel, websiteName: r.websiteName, timestamp: r.revokedAt });
+      if (r.deletedAt) entries.push({ id: `${r.id}-deleted`, action: "deleted", resourceLabel: r.dataLabel, websiteName: r.websiteName, timestamp: r.deletedAt });
+    });
+    return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [resources]);
+
+  const filteredResources = useMemo(() => {
+    let result = resources.filter((r) =>
+      r.websiteName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.dataLabel.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    if (statusFilter !== "all") result = result.filter((r) => r.status === statusFilter);
+    result.sort((a, b) => {
+      const diff = new Date(b.sharedAt).getTime() - new Date(a.sharedAt).getTime();
+      return sortOrder === "newest" ? diff : -diff;
+    });
+    return result;
+  }, [resources, searchQuery, statusFilter, sortOrder]);
+
+  const handleRevoke = (id: string) => {
+    setResources((prev) =>
+      prev.map((r) => r.id === id ? { ...r, status: "revoked" as ResourceStatus, revokedAt: new Date().toISOString() } : r)
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setResources((prev) =>
+      prev.map((r) => r.id === id ? { ...r, status: "deleted" as ResourceStatus, deletedAt: new Date().toISOString(), revokedAt: r.revokedAt || new Date().toISOString() } : r)
+    );
+    setDeleteConfirmId(null);
+  };
+
+  const activeCount = resources.filter((r) => r.status === "active").length;
+  const revokedCount = resources.filter((r) => r.status === "revoked").length;
 
   return (
     <DashboardLayout>
@@ -230,13 +213,13 @@ const SharedResourcesPage = () => {
         <div className="grid grid-cols-3 gap-3">
           <Card className="border-none shadow-sm bg-blue-50/50">
             <CardContent className="py-4 text-center">
-              <p className="text-2xl font-bold text-primary">{resources.filter((r) => r.status === "active").length}</p>
+              <p className="text-2xl font-bold text-primary">{activeCount}</p>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Shares</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm bg-slate-50">
             <CardContent className="py-4 text-center">
-              <p className="text-2xl font-bold">{resources.filter((r) => r.status === "revoked").length}</p>
+              <p className="text-2xl font-bold">{revokedCount}</p>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revoked</p>
             </CardContent>
           </Card>
@@ -254,145 +237,138 @@ const SharedResourcesPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by website or data type..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-11"
             />
           </div>
-          <Select value={selectedType} onValueChange={setSelectedType}>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[150px] h-11">
-              <SelectValue placeholder="Data Type" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Data Types</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="phone">Phone</SelectItem>
-              <SelectItem value="location">Location</SelectItem>
-              <SelectItem value="browsing_history">Browsing History</SelectItem>
-              <SelectItem value="preferences">Preferences</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="revoked">Revoked</SelectItem>
+              <SelectItem value="deleted">Deleted</SelectItem>
             </SelectContent>
           </Select>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 gap-1"
+          <Button
+            variant="outline"
+            className="h-11 gap-1.5"
             onClick={() => setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))}
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
-            <span>{sortOrder === "newest" ? "Newest" : "Oldest"}</span>
+            {sortOrder === "newest" ? "Newest" : "Oldest"}
           </Button>
         </div>
 
         {/* Resources List */}
         <div className="space-y-4">
           {filteredResources.length === 0 ? (
-            <div className="text-center py-12 bg-muted/30 rounded-lg border border-dashed">
-              <ShieldOff className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">No active shared resources found</h3>
-              <p className="text-muted-foreground">
-                You haven&apos;t shared any data with third-party services yet.
-              </p>
-            </div>
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Inbox className="h-10 w-10 mx-auto opacity-20 mb-3" />
+                <p>No results found for your criteria.</p>
+              </CardContent>
+            </Card>
           ) : (
-            filteredResources.map((resource) => (
-              <Card key={resource.id} className="overflow-hidden">
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 bg-primary/10 rounded-full h-fit">
-                        {/* Icon logic remains same, casting as needed */}
-                        {(() => {
-                          const Icon = DATA_TYPE_ICONS[resource.dataType] || FileText;
-                          return <Icon className="h-5 w-5 text-primary" />;
-                        })()}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{resource.websiteName}</h3>
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1">
-                            <Globe className="h-3 w-3" /> {resource.websiteUrl}
-                          </span>
-                          <span>•</span>
-                          <span>{resource.dataLabel}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                      <div className="text-right mr-2 hidden sm:block">
-                        <div className="text-xs text-muted-foreground">Expires</div>
-                        <div className="text-sm font-medium">
-                          {new Date(resource.expiryDate).toLocaleDateString()}
-                        </div>
-                      </div>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="secondary" size="sm" className="w-full sm:w-auto text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200">
-                            <ShieldOff className="h-4 w-4 mr-2" />
-                            Revoke
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Revoke access to your data?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will immediately stop {resource.websiteName} from accessing your {resource.dataLabel}. 
-                              They may still retain data already collected subject to their privacy policy.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleRevoke(resource.id)}
-                              className="bg-amber-600 hover:bg-amber-700"
-                            >
-                              Yes, Revoke Access
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+            filteredResources.map((resource) => {
+              const statusCfg = STATUS_CONFIG[resource.status];
+              const Icon = DATA_TYPE_ICONS[resource.dataType] || FileText;
+              const StatusIcon = statusCfg.icon;
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="secondary" size="sm" className="w-full sm:w-auto text-destructive hover:text-destructive bg-destructive/5 hover:bg-destructive/10 border-destructive/20">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Request data deletion?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will send a formal request to {resource.websiteName} to permanently delete your {resource.dataLabel} 
-                              from their servers. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDelete(resource.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Yes, Request Deletion
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+              return (
+                <Card key={resource.id} className="group transition-all hover:shadow-lg border-slate-200 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="flex flex-col md:flex-row">
+                      {/* Side Highlight for Status */}
+                      <div className={`w-1 md:w-1.5 shrink-0 ${resource.status === 'active' ? 'bg-green-500' : 'bg-slate-300'
+                        }`} />
+
+                      <div className="flex-1 p-5 flex flex-col md:flex-row md:items-center gap-6">
+                        {/* Info Section */}
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="h-12 w-12 rounded-2xl bg-slate-50 border flex items-center justify-center shrink-0">
+                            <Icon className="h-6 w-6 text-slate-600" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-bold text-slate-900">{resource.websiteName}</h3>
+                              <Badge variant={statusCfg.variant} className="text-[10px] uppercase font-bold px-2 py-0">
+                                <StatusIcon className="h-3 w-3 mr-1" /> {statusCfg.label}
+                              </Badge>
+                            </div>
+                            <p className="text-sm font-medium text-slate-500">{resource.dataLabel}</p>
+
+                            <div className="flex gap-4 mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                              <span>Shared: {formatTimestamp(resource.sharedAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions Section */}
+                        <div className="flex items-center gap-2 md:border-l md:pl-6 overflow-x-auto pb-2 md:pb-0">
+                          {resource.status === 'active' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9 gap-2 border-slate-200">
+                                  <ShieldOff className="h-4 w-4" /> Revoke
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Revoke Data Access?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will stop <strong>{resource.websiteName}</strong> from processing your <strong>{resource.dataLabel}</strong> immediately.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleRevoke(resource.id)}>Revoke Now</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+
+                          {resource.status !== 'deleted' && (
+                            <AlertDialog open={deleteConfirmId === resource.id} onOpenChange={(o) => !o && setDeleteConfirmId(null)}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => setDeleteConfirmId(resource.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Shared Data?</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-red-600 font-medium">
+                                    Warning: This request will be sent as a permanent erasure request under DPDP Section 12.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700"
+                                    onClick={() => handleDelete(resource.id)}
+                                  >
+                                    Confirm Erasure
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/30 px-6 py-2 border-t flex justify-between items-center text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3 w-3 text-green-600" />
-                    <span>Active since {new Date(resource.sharedAt).toLocaleDateString()}</span>
-                  </div>
-                  <div>ID: {resource.id.substring(0, 8)}...</div>
-                </div>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
 
@@ -402,50 +378,23 @@ const SharedResourcesPage = () => {
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Audit Timeline</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-6 relative border-l-2 border-muted ml-4 pl-8 py-2">
-              {historyTimeline.length === 0 ? (
-                  <div className="text-muted-foreground">No history available.</div>
-              ) : (
-              historyTimeline.map((item, index) => (
-                <div key={item.id} className="relative">
-                  {/* Timeline dot */}
-                  <div className={`absolute -left-[41px] top-1 h-6 w-6 rounded-full border-2 flex items-center justify-center bg-background
-                    ${item.action === 'shared' ? 'border-primary text-primary' : 
-                      item.action === 'revoked' ? 'border-amber-500 text-amber-500' : 'border-destructive text-destructive'}`}
-                  >
-                    {item.action === 'shared' && <CheckCircle2 className="h-3 w-3" />}
-                    {item.action === 'revoked' && <ShieldOff className="h-3 w-3" />}
-                    {item.action === 'deleted' && <Trash2 className="h-3 w-3" />}
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                    <div className="font-semibold text-sm">
-                      {item.action === 'shared' && 'Access Granted'}
-                      {item.action === 'revoked' && 'Access Revoked'}
-                      {item.action === 'deleted' && 'Deletion Requested'}
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatTimestamp(item.timestamp)}
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">
-                      {item.action === 'shared' ? 'You shared' :
-                       item.action === 'revoked' ? 'You revoked access to' :
-                       'You requested deletion of'}
-                    </span>
-                    {' '}
-                    <span className="font-medium text-foreground">{item.resourceLabel}</span>
-                    {' '}
-                    <span className="text-muted-foreground">with</span>
-                    {' '}
-                    <span className="font-medium text-foreground">{item.websiteName}</span>
-                  </div>
+            {timeline.slice(0, 5).map((entry, idx) => (
+              <div key={entry.id} className="flex gap-4">
+                <div className="flex flex-col items-center shrink-0">
+                  <div className={`h-2.5 w-2.5 rounded-full mt-1 ${entry.action === 'shared' ? 'bg-blue-500' : 'bg-red-500'
+                    }`} />
+                  {idx !== Math.min(timeline.length, 5) - 1 && <div className="w-px flex-1 bg-slate-100 my-1" />}
                 </div>
-              )))}
-            </div>
+                <div className="flex-1 pb-4">
+                  <p className="text-xs font-bold text-slate-700 leading-none">
+                    {entry.action.toUpperCase()}: {entry.resourceLabel}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-1 uppercase font-medium">
+                    {entry.websiteName} · {formatTimestamp(entry.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
