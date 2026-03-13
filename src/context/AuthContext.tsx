@@ -47,6 +47,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
+  demoLogin: () => void;
   register: (data: {
     name: string;
     email: string;
@@ -168,6 +169,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const demoLogin = useCallback(() => {
+    const demoUser = {
+      id: "demo_user_123",
+      name: "Demo User",
+      email: "demo@example.com",
+      phone: "+91 98765 43210",
+      role: "USER",
+      createdAt: new Date().toISOString(),
+    };
+
+    const demoConsents: ConsentRecord[] = [
+      { id: "c1", type: "data_storage", label: "Personal Data Storage", description: "Storage of your profile data.", granted: true, updatedAt: new Date().toISOString() },
+      { id: "c2", type: "ai_processing", label: "AI Transparency & Processing", description: "Use of AI to analyze your privacy risks.", granted: true, updatedAt: new Date().toISOString() },
+      { id: "c3", type: "analytics", label: "Usage Analytics", description: "Anonymous data usage to improve the platform.", granted: false, updatedAt: new Date().toISOString() },
+    ];
+
+    const demoActivities: ActivityEntry[] = [
+      { id: "a1", type: "login", description: "Logged in via Demo Mode", timestamp: new Date().toISOString() },
+    ];
+
+    setToken("demo_token");
+    setState({
+      isAuthenticated: true,
+      user: demoUser,
+      consents: demoConsents,
+      activities: demoActivities,
+      aiEnabled: true,
+      loading: false,
+    });
+  }, []);
+
   const register = useCallback(
     async (data: {
       name: string;
@@ -231,8 +263,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, []);
 
+  const updateProfileDemo = useCallback(async (data: Partial<UserProfile>) => {
+    setState((s) => ({
+      ...s,
+      user: s.user ? { ...s.user, ...data } : null,
+      activities: [
+        { id: `a_${Date.now()}`, type: "data_modification", description: "Updated profile information (Demo)", timestamp: new Date().toISOString() },
+        ...s.activities
+      ]
+    }));
+  }, []);
+
   const updateConsent = useCallback(
     async (consentId: string, granted: boolean) => {
+      const isDemo = getToken() === "demo_token";
+
+      if (isDemo) {
+        setState((s) => ({
+          ...s,
+          consents: s.consents.map((c) => (c.id === consentId ? { ...c, granted, updatedAt: new Date().toISOString() } : c)),
+          aiEnabled: s.consents.find(c => c.id === consentId)?.type === "ai_processing" ? granted : s.aiEnabled,
+          activities: [
+            { id: `a_${Date.now()}`, type: "consent_update", description: `Updated consent (Demo)`, timestamp: new Date().toISOString() },
+            ...s.activities
+          ]
+        }));
+        return;
+      }
+
       const res = await api.updateConsent(consentId, granted);
       const updated = normalizeConsent(res.consent);
 
@@ -327,15 +385,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         ...state,
         login,
+        demoLogin,
         register,
         logout,
-        updateProfile,
+        updateProfile: getToken() === "demo_token" ? updateProfileDemo : updateProfile,
         updateConsent,
         toggleAI,
-        refreshActivities,
-        refreshConsents,
+        refreshActivities: getToken() === "demo_token" ? async () => { } : refreshActivities,
+        refreshConsents: getToken() === "demo_token" ? async () => { } : refreshConsents,
         requestDataExport,
-        requestAccountDeletion,
+        requestAccountDeletion: getToken() === "demo_token" ? logout : requestAccountDeletion,
       }}
     >
       {children}
