@@ -60,9 +60,9 @@ export function LoginPage() {
 
         <Card className="border-blue-100/50 bg-card shadow-2xl rounded-[2.5rem] overflow-hidden">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl">Welcome back</CardTitle>
+            <CardTitle className="text-xl">Welcome to DataKavatch</CardTitle>
             <CardDescription>
-              Sign in to manage your privacy settings
+              Sign in to manage your privacy settings securely
             </CardDescription>
           </CardHeader>
           <CardContent>
