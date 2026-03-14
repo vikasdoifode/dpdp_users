@@ -61,7 +61,9 @@ export function LoginPage() {
         <Card className="border-blue-100/50 bg-card shadow-2xl rounded-[2.5rem] overflow-hidden">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl">Welcome back</CardTitle>
-            <CardDescription>Sign in to manage your privacy settings</CardDescription>
+            <CardDescription>
+              Sign in to manage your privacy settings
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,7 +87,10 @@ export function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-primary hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -105,7 +110,11 @@ export function LoginPage() {
                     onClick={() => setShowPass(!showPass)}
                     aria-label={showPass ? "Hide password" : "Show password"}
                   >
-                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPass ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -128,7 +137,7 @@ export function LoginPage() {
                 className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 border-none"
                 onClick={handleDemoLogin}
               >
-                <Shield className="h-4 w-4 mr-2" /> Demo Login (No Backend)
+                <Shield className="h-4 w-4 mr-2" /> Demo Login
               </Button>
 
               <div className="relative my-6">
