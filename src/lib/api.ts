@@ -1,13 +1,13 @@
 const API_BASE = "http://localhost:5000/api";
 
-let token: string | null = localStorage.getItem("dp2guard_token");
+let token: string | null = localStorage.getItem("datakavatch_token");
 
 export const setToken = (t: string | null) => {
   token = t;
   if (t) {
-    localStorage.setItem("dp2guard_token", t);
+    localStorage.setItem("datakavatch_token", t);
   } else {
-    localStorage.removeItem("dp2guard_token");
+    localStorage.removeItem("datakavatch_token");
   }
 };
 

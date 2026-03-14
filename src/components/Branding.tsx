@@ -24,7 +24,7 @@ export const Logo: React.FC<LogoProps> = ({ className, showText = true, size = "
             <div className={cn("relative flex-shrink-0 overflow-hidden rounded-xl bg-slate-900 border border-white/10 shadow-lg transition-transform hover:scale-105 duration-300", sizeMap[size], "aspect-square")}>
                 <img
                     src="/logo.png"
-                    alt="DP2Guard Logo"
+                    alt="DataKavatch Logo"
                     className="h-full w-full object-contain p-1.5"
                 />
             </div>

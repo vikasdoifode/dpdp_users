@@ -7,7 +7,7 @@ export const AuthLogo = () => (
       <div className="absolute inset-0 bg-primary/20 rounded-full blur-md" />
     </div>
     <span className="text-xl font-bold tracking-tight text-primary">
-      DP2Guard
+      DataKavatch
     </span>
   </div>
 );
