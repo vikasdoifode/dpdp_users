@@ -54,7 +54,7 @@ export function LoginPage() {
             <AuthLogo />
           </div>
           <p className="text-muted-foreground text-sm">
-            Privacy-by-Design Platform · DPDP Act 2023 Compliant
+            DataKavatch · Privacy Compliance Platform
           </p>
         </div>
 

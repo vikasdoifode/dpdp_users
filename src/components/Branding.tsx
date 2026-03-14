@@ -32,11 +32,11 @@ export const Logo: React.FC<LogoProps> = ({ className, showText = true, size = "
                 <div className="flex flex-col text-left">
                     <span className={cn("font-black tracking-tight text-slate-800 leading-none",
                         size === "sm" ? "text-base" : size === "lg" ? "text-2xl" : "text-lg")}>
-                        DP2<span className="text-primary">Guard</span>
+                        Data<span className="text-primary">Kavatch</span>
                     </span>
                     <span className={cn("font-bold text-slate-400 uppercase tracking-widest mt-0.5",
                         size === "sm" ? "text-[8px]" : "text-[10px]")}>
-                        Privacy Sentinel
+                        Privacy Compliance
                     </span>
                 </div>
             )}
