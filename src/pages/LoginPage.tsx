@@ -106,7 +106,7 @@ export function LoginPage() {
                     aria-label={showPass ? "Hide password" : "Show password"}
                   >
                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </div>
+                  </button>
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
