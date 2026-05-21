@@ -12,10 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Shield, Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 
 export function LoginPage() {
-  const { login, demoLogin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,11 +39,6 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemoLogin = () => {
-    demoLogin();
-    navigate("/dashboard");
   };
 
   return (
@@ -130,31 +125,6 @@ export function LoginPage() {
                   </span>
                 )}
               </Button>
-
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 border-none"
-                onClick={handleDemoLogin}
-              >
-                <Shield className="h-4 w-4 mr-2" /> Demo Login
-              </Button>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                <Button variant="outline" disabled>
-                  Google
-                </Button>
-              </div>
             </form>
           </CardContent>
         </Card>

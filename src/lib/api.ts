@@ -13,7 +13,7 @@ export const setToken = (t: string | null) => {
 
 export const getToken = () => token;
 
-async function request<T = any>(
+async function request<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
